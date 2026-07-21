@@ -23,12 +23,20 @@
       body { background: #12141a; color: #e7ebf3; }
     }
     .bes-wrap { width: 100%; max-width: 560px; }
+    /* Le form Brevo n'auto-redimensionne pas (pas de postMessage de hauteur).
+       Hauteur fixe calée sur la hauteur réelle du form pour éviter à la fois
+       le scroll interne et la coupe. Mobile = plus haut (colonnes étroites,
+       texte qui passe à la ligne) que desktop → palier via media query. */
     .bes-frame {
       width: 100%;
-      min-height: 1200px;
+      height: 1740px;
       border: 0;
       border-radius: 8px;
       background: transparent;
+      display: block;
+    }
+    @media (min-width: 600px) {
+      .bes-frame { height: 1600px; }
     }
     .bes-fallback { text-align: center; font-size: 14px; margin-top: 16px; opacity: .75; }
     .bes-fallback a { color: #2BB2FC; }
@@ -41,7 +49,7 @@
       class="bes-frame"
       title="Inscription — Parcours BES"
       src="https://f7d79347.sibforms.com/v2/serve/MUIFAMpXXBZtDvrMnzAu--wM4IvjnPIeFZ1DyFFSDS9PtPO2Bx9xqJjRLrSm6nJf7q45VcYMkfs_SOmW7NdoooMTkLE9XUAn2S7GCDA5MBXd7Hw4N0_hnCYEP8MdSMrWUQ0bZSh3Ptx-i43vExSAhRjT_xXvUsjfN6aktFt0okep22bhG2rffDat97ncV5EmDkRumpkwLyixrIS1"
-      frameborder="0" scrolling="auto" allowfullscreen></iframe>
+      frameborder="0" scrolling="no" allowfullscreen></iframe>
     <p class="bes-fallback">
       Le formulaire ne s'affiche pas ?
       <a href="https://f7d79347.sibforms.com/serve/MUIFAMpXXBZtDvrMnzAu--wM4IvjnPIeFZ1DyFFSDS9PtPO2Bx9xqJjRLrSm6nJf7q45VcYMkfs_SOmW7NdoooMTkLE9XUAn2S7GCDA5MBXd7Hw4N0_hnCYEP8MdSMrWUQ0bZSh3Ptx-i43vExSAhRjT_xXvUsjfN6aktFt0okep22bhG2rffDat97ncV5EmDkRumpkwLyixrIS1" target="_blank" rel="noopener">Ouvre-le ici</a>.
