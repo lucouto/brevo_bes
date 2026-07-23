@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" id="htmlRoot">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parcours BES — Après le Baptême dans l'Esprit Saint</title>
-  <meta name="description" content="Inscription au Parcours BES — après le Baptême dans l'Esprit Saint, suivre Jésus au quotidien.">
+  <meta name="description" content="Inscription au Parcours BES — après le Baptême dans l'Esprit Saint, suivre Jésus au quotidien. / Sign up for the BES journey after the Baptism in the Holy Spirit.">
   <style>
     :root { color-scheme: light dark; }
     * { box-sizing: border-box; }
@@ -23,10 +23,21 @@
       body { background: #12141a; color: #e7ebf3; }
     }
     .bes-wrap { width: 100%; max-width: 560px; }
+    .bes-lang {
+      text-align: right;
+      font-size: 14px;
+      margin: 0 0 12px;
+      opacity: .8;
+    }
+    .bes-lang a { color: #2BB2FC; text-decoration: none; }
+    .bes-lang a.is-active { font-weight: 700; text-decoration: underline; }
+    .bes-lang span { margin: 0 6px; opacity: .5; }
     /* Le form Brevo n'auto-redimensionne pas (pas de postMessage de hauteur).
        Hauteur fixe calée sur la hauteur réelle du form pour éviter à la fois
        le scroll interne et la coupe. Mobile = plus haut (colonnes étroites,
-       texte qui passe à la ligne) que desktop → palier via media query. */
+       texte qui passe à la ligne) que desktop -> palier via media query.
+       NB : le form EN peut avoir une hauteur différente ; re-mesurer une fois
+       le form EN publié et ajuster si besoin. */
     .bes-frame {
       width: 100%;
       height: 2100px;
@@ -44,16 +55,72 @@
 </head>
 <body>
   <main class="bes-wrap">
-    <!-- Formulaire Brevo (hébergé par Brevo — contenu/langue/champs édités dans l'éditeur Brevo) -->
+    <nav class="bes-lang" aria-label="Langue / Language">
+      <a href="?lang=fr" data-lang="fr">Français</a>
+      <span aria-hidden="true">·</span>
+      <a href="?lang=en" data-lang="en">English</a>
+    </nav>
+    <!-- Formulaire Brevo (hébergé par Brevo — contenu/langue/champs édités dans l'éditeur Brevo).
+         La bonne version (FR/EN) est choisie par le script ci-dessous selon la langue du navigateur,
+         avec surcharge manuelle via ?lang=fr / ?lang=en. -->
     <iframe
       class="bes-frame"
+      id="besFrame"
       title="Inscription — Parcours BES"
-      src="https://f7d79347.sibforms.com/v2/serve/MUIFAMpXXBZtDvrMnzAu--wM4IvjnPIeFZ1DyFFSDS9PtPO2Bx9xqJjRLrSm6nJf7q45VcYMkfs_SOmW7NdoooMTkLE9XUAn2S7GCDA5MBXd7Hw4N0_hnCYEP8MdSMrWUQ0bZSh3Ptx-i43vExSAhRjT_xXvUsjfN6aktFt0okep22bhG2rffDat97ncV5EmDkRumpkwLyixrIS1"
       frameborder="0" scrolling="no" allowfullscreen></iframe>
-    <p class="bes-fallback">
-      Le formulaire ne s'affiche pas ?
-      <a href="https://f7d79347.sibforms.com/serve/MUIFAMpXXBZtDvrMnzAu--wM4IvjnPIeFZ1DyFFSDS9PtPO2Bx9xqJjRLrSm6nJf7q45VcYMkfs_SOmW7NdoooMTkLE9XUAn2S7GCDA5MBXd7Hw4N0_hnCYEP8MdSMrWUQ0bZSh3Ptx-i43vExSAhRjT_xXvUsjfN6aktFt0okep22bhG2rffDat97ncV5EmDkRumpkwLyixrIS1" target="_blank" rel="noopener">Ouvre-le ici</a>.
-    </p>
+    <p class="bes-fallback" id="besFallback"></p>
   </main>
+
+  <script>
+    (function () {
+      var BASE = "https://f7d79347.sibforms.com";
+
+      // Un token Brevo par langue. Le champ caché LANGUE (FR/EN) est configuré
+      // DANS chaque form côté Brevo — la page ne fait que router vers le bon.
+      // TODO : remplacer TOKEN_EN par le token du formulaire anglais une fois créé dans Brevo.
+      var TOKENS = {
+        fr: "MUIFAMpXXBZtDvrMnzAu--wM4IvjnPIeFZ1DyFFSDS9PtPO2Bx9xqJjRLrSm6nJf7q45VcYMkfs_SOmW7NdoooMTkLE9XUAn2S7GCDA5MBXd7Hw4N0_hnCYEP8MdSMrWUQ0bZSh3Ptx-i43vExSAhRjT_xXvUsjfN6aktFt0okep22bhG2rffDat97ncV5EmDkRumpkwLyixrIS1",
+        en: "MUIFAJ6l3DIucNeqPkUNfyURFtvIpj2nBKLDdZG4KCz-wKlILae5DIMH4I9PX11nHz2iSvRmMQNs3ehqhXlnbJVvEq_QSFpuTKNI5MO1MdvkX9qoYA9IACbDFdX_4UeoPndOkBZKXx4UNDtR4iuRS_7sy_63UMOqTv_kDxq5Ia_ZOMTjUl5DvDLBBfcnYFNXIYvg7kRgJ4xgyUT7"
+      };
+
+      function v2(t)    { return BASE + "/v2/serve/" + t; }
+      function serve(t) { return BASE + "/serve/" + t; }
+
+      // 1) Langue forcée par ?lang=  2) sinon langue du navigateur  3) défaut EN.
+      var params = new URLSearchParams(window.location.search);
+      var forced = params.get("lang");
+      var nav = (navigator.language || navigator.userLanguage || "en").toLowerCase();
+      var lang = (forced === "fr" || forced === "en")
+        ? forced
+        : (nav.indexOf("fr") === 0 ? "fr" : "en");
+
+      // Filet de sécurité tant que le form EN n'existe pas : ne pas servir un token
+      // fictif — retomber sur FR (le déploiement n'aura lieu qu'une fois TOKEN_EN rempli).
+      if (lang === "en" && TOKENS.en === "TOKEN_EN") {
+        if (window.console) console.warn("Form EN pas encore configure (TOKEN_EN) — repli sur FR.");
+        lang = "fr";
+      }
+
+      document.getElementById("htmlRoot").setAttribute("lang", lang);
+
+      var frame = document.getElementById("besFrame");
+      frame.src = v2(TOKENS[lang]);
+      frame.title = (lang === "fr") ? "Inscription — Parcours BES" : "Registration — BES journey";
+
+      var fb = document.getElementById("besFallback");
+      if (lang === "fr") {
+        fb.innerHTML = 'Le formulaire ne s\'affiche pas ? '
+          + '<a href="' + serve(TOKENS.fr) + '" target="_blank" rel="noopener">Ouvre-le ici</a>.';
+      } else {
+        fb.innerHTML = 'Form not loading? '
+          + '<a href="' + serve(TOKENS.en) + '" target="_blank" rel="noopener">Open it here</a>.';
+      }
+
+      var links = document.querySelectorAll(".bes-lang a");
+      for (var i = 0; i < links.length; i++) {
+        if (links[i].getAttribute("data-lang") === lang) links[i].className = "is-active";
+      }
+    })();
+  </script>
 </body>
 </html>
